@@ -1,0 +1,16 @@
+message(Building channel strip)
+system(faust $$PWD/faustTest.dsp -o channelStrip.h -cn ChannelStrip)
+
+CONFIG += c++11 console
+
+CONFIG += qt
+
+QT += gui widgets
+
+SOURCES += lrmixer.cpp
+
+
+INCLUDEPATH+=/usr/local/include/faust/
+
+HEADERS += channelStrip.h
+HEADERS+=/usr/local/lib/include/faustqt.h
