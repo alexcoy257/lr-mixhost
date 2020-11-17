@@ -32,6 +32,7 @@ class ChannelStrip : public dsp {
 	
  private:
 	
+	FAUSTFLOAT fVslider0;
 	FAUSTFLOAT fCheckbox0;
 	FAUSTFLOAT fHslider0;
 	int fSampleRate;
@@ -128,6 +129,7 @@ class ChannelStrip : public dsp {
 	}
 	
 	virtual void instanceResetUserInterface() {
+		fVslider0 = FAUSTFLOAT(0.0f);
 		fCheckbox0 = FAUSTFLOAT(0.0f);
 		fHslider0 = FAUSTFLOAT(2.0f);
 		fHslider1 = FAUSTFLOAT(15.0f);
@@ -176,6 +178,7 @@ class ChannelStrip : public dsp {
 	}
 	
 	virtual void buildUserInterface(UI* ui_interface) {
+		ui_interface->openVerticalBox("compressor");
 		ui_interface->declare(0, "tooltip", "References:                 https://faustlibraries.grame.fr/libs/compressors/                 http://en.wikipedia.org/wiki/Dynamic_range_compression");
 		ui_interface->openVerticalBox("COMPRESSOR");
 		ui_interface->declare(0, "0", "");
@@ -223,41 +226,46 @@ class ChannelStrip : public dsp {
 		ui_interface->declare(&fHslider0, "unit", "dB");
 		ui_interface->addHorizontalSlider("MakeUpGain", &fHslider0, 2.0f, -96.0f, 96.0f, 0.100000001f);
 		ui_interface->closeBox();
+		ui_interface->declare(&fVslider0, "0", "");
+		ui_interface->declare(&fVslider0, "unit", "dB");
+		ui_interface->addVerticalSlider("Group Gain", &fVslider0, 0.0f, -96.0f, 10.0f, 0.100000001f);
+		ui_interface->closeBox();
 	}
 	
 	virtual void compute(int count, FAUSTFLOAT** inputs, FAUSTFLOAT** outputs) {
 		FAUSTFLOAT* input0 = inputs[0];
 		FAUSTFLOAT* output0 = outputs[0];
-		int iSlow0 = int(float(fCheckbox0));
-		float fSlow1 = std::pow(10.0f, (0.0500000007f * float(fHslider0)));
-		float fSlow2 = std::max<float>(fConst0, (0.00100000005f * float(fHslider1)));
-		float fSlow3 = (0.5f * fSlow2);
-		int iSlow4 = (std::fabs(fSlow3) < 1.1920929e-07f);
-		float fSlow5 = (iSlow4 ? 0.0f : std::exp((0.0f - (fConst0 / (iSlow4 ? 1.0f : fSlow3)))));
-		float fSlow6 = ((1.0f / std::max<float>(1.00000001e-07f, float(fHslider2))) + -1.0f);
-		int iSlow7 = (std::fabs(fSlow2) < 1.1920929e-07f);
-		float fSlow8 = (iSlow7 ? 0.0f : std::exp((0.0f - (fConst0 / (iSlow7 ? 1.0f : fSlow2)))));
-		float fSlow9 = std::max<float>(fConst0, (0.00100000005f * float(fHslider3)));
-		int iSlow10 = (std::fabs(fSlow9) < 1.1920929e-07f);
-		float fSlow11 = (iSlow10 ? 0.0f : std::exp((0.0f - (fConst0 / (iSlow10 ? 1.0f : fSlow9)))));
-		float fSlow12 = float(fHslider4);
-		float fSlow13 = (1.0f - fSlow5);
+		float fSlow0 = std::pow(10.0f, (0.0500000007f * float(fVslider0)));
+		int iSlow1 = int(float(fCheckbox0));
+		float fSlow2 = std::pow(10.0f, (0.0500000007f * float(fHslider0)));
+		float fSlow3 = std::max<float>(fConst0, (0.00100000005f * float(fHslider1)));
+		float fSlow4 = (0.5f * fSlow3);
+		int iSlow5 = (std::fabs(fSlow4) < 1.1920929e-07f);
+		float fSlow6 = (iSlow5 ? 0.0f : std::exp((0.0f - (fConst0 / (iSlow5 ? 1.0f : fSlow4)))));
+		float fSlow7 = ((1.0f / std::max<float>(1.00000001e-07f, float(fHslider2))) + -1.0f);
+		int iSlow8 = (std::fabs(fSlow3) < 1.1920929e-07f);
+		float fSlow9 = (iSlow8 ? 0.0f : std::exp((0.0f - (fConst0 / (iSlow8 ? 1.0f : fSlow3)))));
+		float fSlow10 = std::max<float>(fConst0, (0.00100000005f * float(fHslider3)));
+		int iSlow11 = (std::fabs(fSlow10) < 1.1920929e-07f);
+		float fSlow12 = (iSlow11 ? 0.0f : std::exp((0.0f - (fConst0 / (iSlow11 ? 1.0f : fSlow10)))));
+		float fSlow13 = float(fHslider4);
+		float fSlow14 = (1.0f - fSlow6);
 		for (int i = 0; (i < count); i = (i + 1)) {
 			float fTemp0 = float(input0[i]);
-			float fTemp1 = (iSlow0 ? 0.0f : fTemp0);
+			float fTemp1 = (iSlow1 ? 0.0f : fTemp0);
 			float fTemp2 = std::fabs(fTemp1);
-			float fTemp3 = ((fRec4[1] > fTemp2) ? fSlow11 : fSlow8);
+			float fTemp3 = ((fRec4[1] > fTemp2) ? fSlow12 : fSlow9);
 			fRec5[0] = ((fRec5[1] * fTemp3) + (fTemp2 * (1.0f - fTemp3)));
 			fRec4[0] = fRec5[0];
-			fRec3[0] = ((fRec3[1] * fSlow5) + (fSlow6 * (std::max<float>(((20.0f * std::log10(fRec4[0])) - fSlow12), 0.0f) * fSlow13)));
+			fRec3[0] = ((fRec3[1] * fSlow6) + (fSlow7 * (std::max<float>(((20.0f * std::log10(fRec4[0])) - fSlow13), 0.0f) * fSlow14)));
 			float fTemp4 = (fTemp1 * std::pow(10.0f, (0.0500000007f * fRec3[0])));
 			float fTemp5 = std::fabs(fTemp4);
-			float fTemp6 = ((fRec1[1] > fTemp5) ? fSlow11 : fSlow8);
+			float fTemp6 = ((fRec1[1] > fTemp5) ? fSlow12 : fSlow9);
 			fRec2[0] = ((fRec2[1] * fTemp6) + (fTemp5 * (1.0f - fTemp6)));
 			fRec1[0] = fRec2[0];
-			fRec0[0] = ((fSlow5 * fRec0[1]) + (fSlow6 * (std::max<float>(((20.0f * std::log10(fRec1[0])) - fSlow12), 0.0f) * fSlow13)));
+			fRec0[0] = ((fSlow6 * fRec0[1]) + (fSlow7 * (std::max<float>(((20.0f * std::log10(fRec1[0])) - fSlow13), 0.0f) * fSlow14)));
 			fHbargraph0 = FAUSTFLOAT((20.0f * std::log10(std::pow(10.0f, (0.0500000007f * fRec0[0])))));
-			output0[i] = FAUSTFLOAT((iSlow0 ? fTemp0 : (fSlow1 * fTemp4)));
+			output0[i] = FAUSTFLOAT((fSlow0 * (iSlow1 ? fTemp0 : (fSlow2 * fTemp4))));
 			fRec5[1] = fRec5[0];
 			fRec4[1] = fRec4[0];
 			fRec3[1] = fRec3[0];

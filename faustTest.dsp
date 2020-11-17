@@ -70,4 +70,6 @@ with {
         2, -96, 96, 0.1)) : ba.db2linear;
 };
 
-process = _ : compressor_demo : _;
+group_gain = *(vslider("[0] Group Gain [unit:dB]",0, -96, 10, 0.1) : ba.db2linear);
+
+process = _ : compressor_demo : group_gain :_;

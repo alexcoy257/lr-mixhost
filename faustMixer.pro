@@ -7,7 +7,7 @@ CONFIG += qt
 
 QT += gui widgets
 
-SOURCES += lrmixer.cpp
+
 
 FAUSTINC = /usr/local/include/faust/
 
@@ -17,13 +17,26 @@ message($$FAUSTINC)
 
 LIBS += -ljack
 
-HEADERS += $$FAUSTINC/gui/QTUI.h
-HEADERS += $$FAUSTINC/gui/GUI.h
 
-HEADERS += channelStrip.h
-#HEADERS += jackChannelStrip.h
+lrmixer{
+    TARGET = lrmixer
+    SOURCES += lrmixer.cpp
+    HEADERS += $$FAUSTINC/gui/QTUI.h
+    HEADERS += $$FAUSTINC/gui/GUI.h
 
-#SOURCES += jackChannelStrip.cpp
+    HEADERS += channelStrip.h
+    #HEADERS += jackChannelStrip.h
+
+    #SOURCES += jackChannelStrip.cpp
+}
+
+patchtest{
+  TARGET = patchtest
+  SOURCES += patchTest.cpp
+  HEADERS += Patcher.h
+  SOURCES += Patcher.cpp
+}
+
 
 
 
