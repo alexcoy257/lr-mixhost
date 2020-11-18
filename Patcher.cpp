@@ -54,22 +54,67 @@ Patcher::Patcher()
         qDebug() << "Cannot activate jack client\n";
     }
 
-    connect(this, SIGNAL(newPort()), SLOT(doNewPort()), Qt::QueuedConnection);
+    connect(this, SIGNAL(newPort(jack_port_id_t,int)), SLOT(doNewPort(jack_port_id_t,int)), Qt::QueuedConnection);
     qDebug() << "Constructed Patcher\n";
 }
 
 
 
 void Patcher::s_cp_patch(jack_port_id_t port, int reg, void * p){
-    emit((Patcher *) p)->newPort();
+    emit((Patcher *) p)->newPort(port, reg);
     Q_UNUSED(port);
     Q_UNUSED(reg);
 }
 
-void Patcher::doNewPort(){
+void Patcher::doNewPort(jack_port_id_t p_id, int reg){
     qDebug() << "Called patch callback";
+    QMutexLocker locker(&m_connectionMutex);
+
+
+    const char **outPorts, **inPorts;
+    outPorts = jack_get_ports(m_jackClient, NULL, NULL, JackPortIsOutput);
+    inPorts = jack_get_ports(m_jackClient, NULL, NULL, JackPortIsInput);
+
+    const jack_port_t * port = jack_port_by_id(m_jackClient, p_id);
+    QString pName = jack_port_name(port);
+    QString cName = pName.section(":", 0, 0);
+    QString test = cName.section("-", 1, 1);
+    if(test != NULL && reg > 0){
+        if(!m_clients.contains(cName)){
+            m_clients.insert(cName, new EnsMember(cName));
+            qDebug() << "Adding " <<cName;
+        }
+        EnsMember * cMember = m_clients[cName];
+        cMember->regPort(port);
+    }
+    else if (test != NULL){
+        if(m_clients.contains(cName)){
+            EnsMember * cMember = m_clients[cName];
+            if(! cMember->deregPort(port)){
+                m_clients.remove(cName);
+                delete cMember;
+                qDebug() << "Removed" <<cName;
+            }
+        }
+        
+    }
+    qDebug() << "Port for " <<pName <<(reg?" registered ":" deregistered ") <<"\n";
+
+    /*
+    for (int i = 0; outPorts[i]; i++) {
+        QString clientName = QString(outPorts[i]).section(":", 0, 0);
+        qDebug() << "Port for " <<clientName <<"\n";
+        if(!m_clients.contains(clientName)){
+            qDebug() << "Adding " <<clientName;
+        }
+    }
+    */
+
+   jack_free(outPorts);
+   jack_free(inPorts);
 }
 
+/*
 void Patcher::registerClient(const QString &clientName)
 {
     QMutexLocker locker(&m_connectionMutex);
@@ -130,6 +175,7 @@ void Patcher::unregisterClient(const QString &clientName)
     QMutexLocker locker(&m_connectionMutex);
     m_clients.removeAll(clientName);
 }
+*/
 
 Patcher::~Patcher()
 {

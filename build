@@ -2,8 +2,8 @@ pushd ../build
 qmake -spec linux-g++ ../src/faustMixer.pro CONFIG+=$1
 make clean
 make -j4
-if [ -x $1 ]
-then
-./$1
-fi
+#if [ -x $1 ]
+#then
+#./$1
+#fi
 popd 

@@ -45,6 +45,43 @@
 #include <QObject>
 #include <QDebug>
 
+
+
+#include <faust/dsp/dsp.h>
+#include <faust/gui/meta.h>
+#include <faust/gui/QTUI.h>
+#include <faust/audio/jack-dsp.h>
+
+#include "channelStrip.h"
+
+
+
+
+
+class EnsMember: public QObject
+{
+    Q_OBJECT
+    public:
+        EnsMember(QString cName);
+        virtual ~EnsMember();
+        void regPort(const jack_port_t * p);
+        int deregPort(const jack_port_t * p);
+
+    private:
+        int numIn;
+        int numOut;
+        QVector<const jack_port_t *> inPorts;
+        QVector<const jack_port_t *> outPorts;
+        QString name;
+        QString section;
+        ChannelStrip * cs;
+        QTGUI * u_ChannelStrip;
+        jackaudio audio;
+
+        
+
+};
+
 class Patcher: public QObject
 {
     Q_OBJECT
@@ -57,7 +94,7 @@ public:
     void unregisterClient(const QString &clientName);
     
 private:
-    QStringList m_clients;
+    QHash<QString,EnsMember *> m_clients;
     
     jack_client_t *m_jackClient;
     jack_status_t m_status;
@@ -67,9 +104,9 @@ private:
     QMutex m_connectionMutex;
 
 signals:
-    void newPort();
+    void newPort(jack_port_id_t port, int reg);
 private slots:
-    void doNewPort();
+    void doNewPort(jack_port_id_t port, int reg);
 };
  
 #endif // __PATCHER_H__

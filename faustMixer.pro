@@ -33,8 +33,12 @@ lrmixer{
 patchtest{
   TARGET = patchtest
   SOURCES += patchTest.cpp
-  HEADERS += Patcher.h
-  SOURCES += Patcher.cpp
+  HEADERS += Patcher.h \
+             $$FAUSTINC/gui/QTUI.h \
+             $$FAUSTINC/gui/GUI.h \
+             channelStrip.h
+  SOURCES += Patcher.cpp \
+             EnsMember.cpp
 }
 
 
