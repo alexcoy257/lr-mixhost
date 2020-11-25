@@ -1,5 +1,5 @@
-message(Building channel strip)
-system(faust $$PWD/faustTest.dsp -o channelStrip.h -cn ChannelStrip)
+#message(Building channel strip)
+#system(faust $$PWD/faustTest.dsp -o channelStrip.h -cn ChannelStrip)
 
 CONFIG += c++11 console
 
@@ -34,7 +34,7 @@ patchtest{
   TARGET = patchtest
   SOURCES += patchTest.cpp
   HEADERS += Patcher.h \
-             $$FAUSTINC/gui/QTUI.h \
+#             $$FAUSTINC/gui/QTUI.h \
              $$FAUSTINC/gui/GUI.h \
              channelStrip.h
   SOURCES += Patcher.cpp \

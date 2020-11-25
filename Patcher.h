@@ -62,24 +62,27 @@ class EnsMember: public QObject
 {
     Q_OBJECT
     public:
-        EnsMember(QString cName);
+        EnsMember(QString cName, jack_client_t * jClient);
         virtual ~EnsMember();
         void regPort(const jack_port_t * p);
         int deregPort(const jack_port_t * p);
+        const jack_port_t * inPort(int n);
+        const jack_port_t * outPort(int n);
+        QString name;
 
     private:
         int numIn;
         int numOut;
         QVector<const jack_port_t *> inPorts;
         QVector<const jack_port_t *> outPorts;
-        QString name;
+        
         QString section;
         ChannelStrip * cs;
         QTGUI * u_ChannelStrip;
         jackaudio audio;
+        jack_client_t * jClient;
 
         
-
 };
 
 class Patcher: public QObject
@@ -102,6 +105,7 @@ private:
     void cp_patch(jack_port_id_t port, int reg);
 
     QMutex m_connectionMutex;
+    void fanInOut(EnsMember * mem);
 
 signals:
     void newPort(jack_port_id_t port, int reg);

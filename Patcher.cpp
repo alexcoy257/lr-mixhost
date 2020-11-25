@@ -67,7 +67,7 @@ void Patcher::s_cp_patch(jack_port_id_t port, int reg, void * p){
 }
 
 void Patcher::doNewPort(jack_port_id_t p_id, int reg){
-    qDebug() << "Called patch callback";
+    //qDebug() << "Called patch callback";
     QMutexLocker locker(&m_connectionMutex);
 
 
@@ -81,11 +81,13 @@ void Patcher::doNewPort(jack_port_id_t p_id, int reg){
     QString test = cName.section("-", 1, 1);
     if(test != NULL && reg > 0){
         if(!m_clients.contains(cName)){
-            m_clients.insert(cName, new EnsMember(cName));
+            m_clients.insert(cName, new EnsMember(cName, m_jackClient));
             qDebug() << "Adding " <<cName;
         }
         EnsMember * cMember = m_clients[cName];
         cMember->regPort(port);
+        fanInOut(m_clients[cName]);
+
     }
     else if (test != NULL){
         if(m_clients.contains(cName)){
@@ -98,7 +100,8 @@ void Patcher::doNewPort(jack_port_id_t p_id, int reg){
         }
         
     }
-    qDebug() << "Port for " <<pName <<(reg?" registered ":" deregistered ") <<"\n";
+
+    //qDebug() << "Port for " <<pName <<(reg?" registered ":" deregistered ") <<"\n";
 
     /*
     for (int i = 0; outPorts[i]; i++) {
@@ -112,6 +115,30 @@ void Patcher::doNewPort(jack_port_id_t p_id, int reg){
 
    jack_free(outPorts);
    jack_free(inPorts);
+}
+
+void Patcher::fanInOut(EnsMember * mem){
+    qDebug() <<"Start fanout. \n";
+    for (EnsMember * client : m_clients){
+        if (mem==NULL || client == NULL){
+            qDebug() <<"Client or member null";
+            break;
+        }
+        
+        if (client != mem){
+            qDebug() <<"Fanning " <<mem->name <<" to " << client->name <<"\n";
+            const jack_port_t * opc = client->outPort(0);
+            const jack_port_t * ipc = mem->inPort(0);
+            if(opc && ipc){
+                jack_connect(m_jackClient, jack_port_name(opc), jack_port_name(ipc));
+            }
+            opc = mem->outPort(0);
+            ipc = client->inPort(0);
+            if(opc && ipc){
+                jack_connect(m_jackClient, jack_port_name(opc), jack_port_name(ipc));
+            }
+        }
+    }
 }
 
 /*
